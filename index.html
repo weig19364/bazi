@@ -396,6 +396,34 @@ function calcDaYunPrecise(gz, jd, gender) {
 }
 
 
+function calendarToJDN(y, m, d, isJulian) {
+  const a = Math.floor((14 - m) / 12);
+  const y2 = y + 4800 - a;
+  const m2 = m + 12 * a - 3;
+  if (isJulian) {
+    return d + Math.floor((153 * m2 + 2) / 5) + 365 * y2 + Math.floor(y2 / 4) - 32083;
+  }
+  return d + Math.floor((153 * m2 + 2) / 5) + 365 * y2 + Math.floor(y2 / 4)
+    - Math.floor(y2 / 100) + Math.floor(y2 / 400) - 32045;
+}
+
+function parseHistoricalJD(tStr, tzOffset) {
+  const parts = tStr.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (!parts) throw new Error("时间格式错误: " + tStr);
+
+  const year = parseInt(parts[1], 10);
+  const month = parseInt(parts[2], 10);
+  const day = parseInt(parts[3], 10);
+  const hour = parseInt(parts[4], 10);
+  const minute = parseInt(parts[5], 10);
+  const second = parseInt(parts[6] || "0", 10);
+
+  const isJulian = (year < 1582) || (year === 1582 && (month < 10 || (month === 10 && day < 15)));
+  const jdn = calendarToJDN(year, month, day, isJulian);
+  return jdn - 0.5 + (hour - tzOffset + minute / 60 + second / 3600) / 24;
+}
+
+
 function calc() {
     if(!core) return;
 // 1. 获取用户输入的本地时间字符串（格式：2025-03-15T14:30 或 2025-03-15T14:30:00）
@@ -522,12 +550,5 @@ createDunjiaCore({ wasmBinary: b64ToUint8(window.WASM_DATA) }).then(m => {
     calc();
 });
 </script>
-
-<script type="module">
-  import { calendarToJDN, parseHistoricalJD } from './historical_calendar.js';
-  window.calendarToJDN = calendarToJDN;
-  window.parseHistoricalJD = parseHistoricalJD;
-</script>
-
 </body>
 </html>
