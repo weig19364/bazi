@@ -275,22 +275,18 @@ function getLocation() {
     });
 }
 function lookupYilin(benName, zhiName) {
-    if(!window.YILIN_BOOK) return null;
-    let k = `${benName}之${zhiName}`;
-    // 修复 Bug: 增加对 "全简体" 组合的查询 (data["兑"]["节"])
-    if(window.YILIN_BOOK[k]) return window.YILIN_BOOK[k];
-    const bAlt = ALT_NAMES[benName] || benName;
-    const zAlt = ALT_NAMES[zhiName] || zhiName;
-    
-    // 优先级 1: 原始查找
-    if(window.YILIN_BOOK[benName] && window.YILIN_BOOK[benName][zhiName]) return window.YILIN_BOOK[benName][zhiName];
-    // 优先级 2: 主繁变简
-    if(window.YILIN_BOOK[benName] && window.YILIN_BOOK[benName][zAlt]) return window.YILIN_BOOK[benName][zAlt];
-    // 优先级 3: 主简变繁
-    if(window.YILIN_BOOK[bAlt] && window.YILIN_BOOK[bAlt][zhiName]) return window.YILIN_BOOK[bAlt][zhiName];
-    // 优先级 4: 全简体 (这步之前漏了)
-    if(window.YILIN_BOOK[bAlt] && window.YILIN_BOOK[bAlt][zAlt]) return window.YILIN_BOOK[bAlt][zAlt];
-    
+    var B = window.YILIN_INLINE || window.YILIN_BOOK;
+    if(!B) return null;
+    var bAlt = ALT_NAMES[benName] || benName, zAlt = ALT_NAMES[zhiName] || zhiName;
+    var r = B[benName + "之" + zhiName]
+          || B[benName + "之" + zAlt]
+          || B[bAlt + "之" + zhiName]
+          || B[bAlt + "之" + zAlt];
+    if(r) return r;
+    if(B[benName] && B[benName][zhiName]) return B[benName][zhiName];
+    if(B[benName] && B[benName][zAlt]) return B[benName][zAlt];
+    if(B[bAlt] && B[bAlt][zhiName]) return B[bAlt][zhiName];
+    if(B[bAlt] && B[bAlt][zAlt]) return B[bAlt][zAlt];
     return null;
 }
 function getLunar(targetJD) {
